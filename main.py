@@ -27,6 +27,8 @@ parser.add_argument('--num_heads', default=1, type=int)
 parser.add_argument('--dropout_rate', default=0.5, type=float)
 parser.add_argument('--l2_emb', default=0.0, type=float)
 
+tf.compat.v1.disable_eager_execution()
+
 args = parser.parse_args()
 if not os.path.isdir(args.dataset + '_' + args.train_dir):
     os.makedirs(args.dataset + '_' + args.train_dir)
@@ -40,17 +42,17 @@ num_batch = len(user_train) / args.batch_size
 cc = 0.0
 for u in user_train:
     cc += len(user_train[u])
-print 'average sequence length: %.2f' % (cc / len(user_train))
+print ('average sequence length: %.2f' % (cc / len(user_train)))
 
 f = open(os.path.join(args.dataset + '_' + args.train_dir, 'log.txt'), 'w')
-config = tf.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 config.allow_soft_placement = True
-sess = tf.Session(config=config)
+sess = tf.compat.v1.Session(config=config)
 
 sampler = WarpSampler(user_train, usernum, itemnum, batch_size=args.batch_size, maxlen=args.maxlen, n_workers=3)
 model = Model(usernum, itemnum, args)
-sess.run(tf.initialize_all_variables())
+sess.run(tf.compat.v1.initialize_all_variables())
 
 T = 0.0
 t0 = time.time()
@@ -67,12 +69,12 @@ try:
         if epoch % 20 == 0:
             t1 = time.time() - t0
             T += t1
-            print 'Evaluating',
+            print ('Evaluating',)
             t_test = evaluate(model, dataset, args, sess)
             t_valid = evaluate_valid(model, dataset, args, sess)
-            print ''
-            print 'epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f), test (NDCG@10: %.4f, HR@10: %.4f)' % (
-            epoch, T, t_valid[0], t_valid[1], t_test[0], t_test[1])
+
+            print ('epoch:%d, time: %f(s), valid (NDCG@10: %.4f, HR@10: %.4f), test (NDCG@10: %.4f, HR@10: %.4f)' % (
+            epoch, T, t_valid[0], t_valid[1], t_test[0], t_test[1]))
 
             f.write(str(t_valid) + ' ' + str(t_test) + '\n')
             f.flush()
