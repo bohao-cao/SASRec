@@ -6,6 +6,7 @@ from sampler import WarpSampler
 from model import Model
 from tqdm import tqdm
 from util import *
+import traceback
 
 
 def str2bool(s):
@@ -38,7 +39,7 @@ f.close()
 
 dataset = data_partition(args.dataset)
 [user_train, user_valid, user_test, usernum, itemnum] = dataset
-num_batch = len(user_train) / args.batch_size
+num_batch = len(user_train) // args.batch_size
 cc = 0.0
 for u in user_train:
     cc += len(user_train[u])
@@ -79,7 +80,9 @@ try:
             f.write(str(t_valid) + ' ' + str(t_test) + '\n')
             f.flush()
             t0 = time.time()
-except:
+except Exception as e:
+    print(f"error encountered: {e}")
+    traceback.print_exc()
     sampler.close()
     f.close()
     exit(1)
